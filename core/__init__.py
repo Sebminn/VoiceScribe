@@ -1,0 +1,1 @@
+# VoiceScribe — core package
