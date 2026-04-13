@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Models (large binary files — скачиваются через setup.py)
+models/
+
+# Config with personal settings (keep config.yaml.example)
+# config.yaml  # НЕ игнорируем — содержит дефолты, не секреты
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Test output
+test_recordings/
+*.wav
+*.mp3
