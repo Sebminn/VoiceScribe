@@ -340,6 +340,60 @@ class Pipeline:
             self._finish_error(f"Ошибка буфера обмена: {exc}")
             return
 
+        # ── Автовставка Ctrl+V (Windows SendInput) ───────────────────────────
+        if self._config.get("output", {}).get("auto_paste", True):
+            try:
+                import ctypes
+                import ctypes.wintypes as wintypes
+                import time as _time
+
+                _time.sleep(0.25)  # ждём, пока ОС обработает отпускание горячей клавиши
+
+                INPUT_KEYBOARD   = 1
+                KEYEVENTF_KEYUP  = 0x0002
+                VK_CONTROL       = 0x11
+                VK_V             = 0x56
+
+                class _KEYBDINPUT(ctypes.Structure):
+                    _fields_ = [
+                        ("wVk",         wintypes.WORD),
+                        ("wScan",       wintypes.WORD),
+                        ("dwFlags",     wintypes.DWORD),
+                        ("time",        wintypes.DWORD),
+                        ("dwExtraInfo", ctypes.POINTER(ctypes.c_ulong)),
+                    ]
+
+                class _INPUT(ctypes.Structure):
+                    class _U(ctypes.Union):
+                        _fields_ = [
+                            ("ki",   _KEYBDINPUT),
+                            # MOUSEINPUT — самый большой член union (32 байта на 64-bit);
+                            # без него sizeof(INPUT) = 32 вместо 40, и SendInput молча падает
+                            ("_pad", ctypes.c_byte * 32),
+                        ]
+                    _anonymous_ = ("_u",)
+                    _fields_    = [("type", wintypes.DWORD), ("_u", _U)]
+
+                inputs = (_INPUT * 4)()
+
+                inputs[0].type    = INPUT_KEYBOARD   # нажать Ctrl
+                inputs[0].ki.wVk  = VK_CONTROL
+
+                inputs[1].type    = INPUT_KEYBOARD   # нажать V
+                inputs[1].ki.wVk  = VK_V
+
+                inputs[2].type         = INPUT_KEYBOARD   # отпустить V
+                inputs[2].ki.wVk       = VK_V
+                inputs[2].ki.dwFlags   = KEYEVENTF_KEYUP
+
+                inputs[3].type         = INPUT_KEYBOARD   # отпустить Ctrl
+                inputs[3].ki.wVk       = VK_CONTROL
+                inputs[3].ki.dwFlags   = KEYEVENTF_KEYUP
+
+                ctypes.windll.user32.SendInput(4, inputs, ctypes.sizeof(_INPUT))
+            except Exception:  # noqa: BLE001
+                pass  # вставка не критична — текст уже в буфере обмена
+
         # ── Формируем результат ───────────────────────────────────────────────
         result = PipelineResult(
             text               = final_text,

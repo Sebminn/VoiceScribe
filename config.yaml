@@ -51,6 +51,7 @@ editor:
 # ── Вывод ────────────────────────────────────────────────────────────────────
 output:
   mode: clipboard          # clipboard (единственный режим в MVP)
+  auto_paste: true         # true = автоматически вставлять Ctrl+V после распознавания
   notify: true             # Показывать Windows Toast при готовности текста
   notify_duration_ms: 3000 # Длительность Toast-уведомления (мс)
   notify_preview_chars: 60 # Количество символов текста в превью уведомления
