@@ -3,13 +3,13 @@
 # Файл редактируется вручную или через UI; изменения применяются без перезапуска.
 
 app:
-  first_run: true          # false после первого запуска (onboarding пропускается)
+  first_run: false         # false после первого запуска (onboarding пропускается)
   language: auto           # auto | ru | en
 
 # ── Горячая клавиша и режим записи ───────────────────────────────────────────
 hotkey:
   key: ctrl+shift+space    # Комбинация клавиш
-  mode: hold               # hold | toggle
+  mode: toggle             # hold | toggle
   min_hold_ms: 500         # Hold: минимальное время нажатия (мс); короче — игнорируется
   autostop_sec: 30         # Toggle: автостоп при тишине (сек)
   max_record_sec: 300      # Максимальная длина записи (5 минут)
@@ -34,13 +34,13 @@ transcriber:
   device: cuda             # cuda | cpu
   compute_type: int8       # int8 (быстро, ~1.5 ГБ VRAM) | float16 (надёжнее, ~3 ГБ VRAM)
   beam_size: 5             # Ширина beam search; 5 — хороший баланс точности/скорости
-  language: null           # null = автоопределение; или "ru" / "en"
+  language:                # null = автоопределение; или "ru" / "en"
   task: transcribe         # transcribe | translate (translate → всегда English)
   condition_on_previous: false  # Контекст между сегментами; false для коротких записей
 
 # ── LLM постобработка (Phi-3.5 Mini) ─────────────────────────────────────────
 editor:
-  enabled: true            # false = только сырая транскрипция без LLM
+  enabled: false           # false = только сырая транскрипция без LLM (llama-cpp-python недоступен на Python 3.13)
   model_path: models/Phi-3.5-mini-Q4.gguf
   gpu_layers: -1           # -1 = все слои на GPU; 0 = CPU; N = N слоёв на GPU
   context_size: 2048       # Контекстное окно (токены)

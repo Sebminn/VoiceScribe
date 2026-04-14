@@ -27,12 +27,12 @@ RESOURCES_DIR = ROOT / "resources"
 
 # ── Требования ────────────────────────────────────────────────────────────────
 MIN_PYTHON = (3, 11)
-MAX_PYTHON = (3, 12)          # 3.13+ не поддерживается llama-cpp
+MAX_PYTHON = (3, 13)          # llama-cpp-python поддерживает 3.13 начиная с v0.3+
 MIN_DRIVER = 572
 MIN_CUDA = (12, 8)
 MIN_CTRANSLATE2 = (4, 7, 1)
 
-WHISPER_MODEL_REPO = "Systran/faster-whisper-large-v3-turbo"
+WHISPER_MODEL_REPO = "deepdml/faster-whisper-large-v3-turbo-ct2"
 WHISPER_MODEL_DIR  = MODELS_DIR / "faster-whisper-large-v3-turbo"
 
 PHI_REPO      = "bartowski/Phi-3.5-mini-instruct-GGUF"
