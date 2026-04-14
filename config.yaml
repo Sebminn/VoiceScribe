@@ -37,6 +37,9 @@ transcriber:
   language:                # null = автоопределение; или "ru" / "en"
   task: transcribe         # transcribe | translate (translate → всегда English)
   condition_on_previous: false  # Контекст между сегментами; false для коротких записей
+  initial_prompt: "Привет. Нажми Ctrl+C, потом Ctrl+V, затем Escape. Открой Settings в VS Code. Используй Python, JavaScript, TypeScript, React, API, Git, GitHub, Docker. Нажми Shift, Alt, Tab, Delete, Backspace, Enter, Space, Insert, Home, End, PageUp, PageDown. Функция function class return import export if else while for."
+  # Подсказка-пример для Whisper: показывает ожидаемый формат текста — русская речь
+  # с английскими техническими терминами в оригинальном написании (не транслитерация).
 
 # ── LLM постобработка (Phi-3.5 Mini) ─────────────────────────────────────────
 editor:

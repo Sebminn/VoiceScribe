@@ -87,6 +87,12 @@ class Transcriber:
         lang = cfg.get("language")
         self.language: Optional[str] = lang if lang else None
 
+        # Текст-подсказка для Whisper: задаёт ожидаемый стиль вывода.
+        # Эффективен для смешанной русско-английской речи — модель видит,
+        # что English-термины должны писаться латиницей, а не транслитерацией.
+        prompt = cfg.get("initial_prompt", "")
+        self.initial_prompt: Optional[str] = prompt if prompt else None
+
         self._model = None                 # faster_whisper.WhisperModel
         self._sample_rate: int = config["audio"]["sample_rate"]  # 16 000
 
@@ -182,6 +188,7 @@ class Transcriber:
             beam_size=self.beam_size,
             language=self.language,
             task=self.task,
+            initial_prompt=self.initial_prompt,
             condition_on_previous_text=self.condition_on_previous,
             vad_filter=False,   # используем Silero VAD из core/vad.py
             word_timestamps=False,
