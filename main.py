@@ -36,15 +36,19 @@ def main() -> None:
         )
         sys.exit(1)
 
-    # ── TODO (Этап 8): onboarding при первом запуске ──────────────────────────
-    # if config.get("app", {}).get("first_run", True):
-    #     from ui.onboarding import OnboardingDialog
-    #     dlg = OnboardingDialog(config, cm)
-    #     dlg.exec()
+    # ── Onboarding (первый запуск) ────────────────────────────────────────────
+    loaded_pipeline = None
+    if config.get("app", {}).get("first_run", True):
+        from ui.onboarding import OnboardingDialog
+        dlg = OnboardingDialog(config, config_manager=cm)
+        dlg.exec()
+        # Если модели загружены в onboarding — передаём в трей (не грузим повторно)
+        if dlg.pipeline_loaded:
+            loaded_pipeline = dlg.pipeline
 
     # ── Трей ─────────────────────────────────────────────────────────────────
     from ui.tray import VoiceScribeTray
-    tray = VoiceScribeTray(app, config, config_manager=cm)
+    tray = VoiceScribeTray(app, config, config_manager=cm, pipeline=loaded_pipeline)
     tray.setup()
 
     sys.exit(app.exec())

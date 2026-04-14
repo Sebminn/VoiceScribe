@@ -411,7 +411,7 @@ class VoiceScribeTray(QObject):
     """
 
     def __init__(self, app: QApplication, config: dict,
-                 config_manager=None) -> None:
+                 config_manager=None, pipeline=None) -> None:
         super().__init__()
         self._app    = app
         self._config = config
@@ -422,10 +422,11 @@ class VoiceScribeTray(QObject):
 
         self._signals = _Signals()
 
-        # Pipeline
+        # Pipeline: принимаем уже загруженный (из onboarding) или создаём новый
         from core.pipeline import Pipeline, PipelineState  # noqa: PLC0415
         self._PipelineState = PipelineState
-        self._pipeline = Pipeline(config)
+        self._models_preloaded = pipeline is not None
+        self._pipeline = pipeline if pipeline is not None else Pipeline(config)
         self._pipeline.on_state_change   = self._signals.state_changed.emit
         self._pipeline.on_result         = self._signals.result_ready.emit
         self._pipeline.on_error          = self._signals.error.emit
@@ -536,6 +537,10 @@ class VoiceScribeTray(QObject):
         self._hotkey_listener.start()
 
     def _start_model_loading(self) -> None:
+        if self._models_preloaded:
+            # Модели уже загружены в onboarding — сразу сигналим о готовности
+            QTimer.singleShot(0, self._on_models_ready)
+            return
         self._loader = _ModelLoader(self._pipeline, self._signals)
         self._loader.start()
 
