@@ -410,10 +410,12 @@ class VoiceScribeTray(QObject):
     Все обновления UI происходят в главном Qt-потоке через сигналы.
     """
 
-    def __init__(self, app: QApplication, config: dict) -> None:
+    def __init__(self, app: QApplication, config: dict,
+                 config_manager=None) -> None:
         super().__init__()
         self._app    = app
         self._config = config
+        self._cm     = config_manager   # core.config.ConfigManager или None
         self._paused = False
         self._loading_done = False
         self._recording_sec = 0.0
@@ -700,13 +702,31 @@ class VoiceScribeTray(QObject):
         self._update_tooltip()
 
     def _open_settings(self) -> None:
-        # TODO (Этап 7): открыть окно настроек
-        self._tray.showMessage(
-            "VoiceScribe",
-            "Окно настроек будет в Этапе 7.",
-            QSystemTrayIcon.MessageIcon.Information,
-            2000,
+        from ui.settings import SettingsDialog  # lazy — нет циклической зависимости
+        dlg = SettingsDialog(
+            config=self._config,
+            config_manager=self._cm,
+            on_applied=self._on_settings_applied,
         )
+        dlg.exec()
+
+    def _on_settings_applied(self, changed_keys: set) -> None:
+        """Горячее применение изменённых настроек без перезапуска."""
+        hotkey_keys = {"hotkey.key", "hotkey.mode",
+                       "hotkey.min_hold_ms", "hotkey.autostop_sec"}
+        if changed_keys & hotkey_keys:
+            # Перезапустить слушатель с обновлённым режимом / клавишей
+            if self._hotkey_listener:
+                self._hotkey_listener.stop()
+            self._setup_hotkey()
+
+        # Синхронизируем галочки режима в меню
+        mode = self._config.get("hotkey", {}).get("mode", "hold")
+        self._action_hold.setChecked(mode == "hold")
+        self._action_toggle.setChecked(mode == "toggle")
+        self._pipeline.mode = mode
+
+        self._update_tooltip()
 
     def _on_tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
         """Двойной клик → если есть ошибка, показать её."""
@@ -721,7 +741,14 @@ class VoiceScribeTray(QObject):
                 )
 
     def _save_config(self) -> None:
-        """Сохраняет hotkey-секцию в config.yaml (сохраняя комментарии)."""
+        """Сохраняет изменения в config.yaml."""
+        if self._cm is not None:
+            try:
+                self._cm.save()
+            except Exception as exc:  # noqa: BLE001
+                print(f"[WARN] ConfigManager.save: {exc}", file=sys.stderr)
+            return
+        # Fallback: inline ruamel.yaml (если ConfigManager не передан)
         try:
             from ruamel.yaml import YAML  # type: ignore
             config_path = Path(__file__).parent.parent / "config.yaml"
